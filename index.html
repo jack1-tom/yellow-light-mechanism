@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>黄灯机制演示 / Yellow Light Mechanism Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --green-light: #10b981;
+            --green-light-glow: rgba(16, 185, 129, 0.4);
+            --yellow-light: #f59e0b;
+            --yellow-light-glow: rgba(245, 158, 11, 0.4);
+            --red-light: #ef4444;
+            --red-light-glow: rgba(239, 68, 68, 0.4);
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --border-color: #334155;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 3rem 1rem;
+            background: linear-gradient(180deg, rgba(15, 23, 42, 0) 0%, rgba(15, 23, 42, 1) 100%);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Traffic Light Container */
+        .traffic-light-container {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            padding: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .traffic-light {
+            background: var(--bg-card);
+            border: 2px solid var(--border-color);
+            border-radius: 20px;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            align-items: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .traffic-light::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 100%);
+            pointer-events: none;
+        }
+
+        .traffic-light:hover {
+            transform: translateY(-5px);
+            border-color: var(--yellow-light);
+        }
+
+        .traffic-light.active {
+            border-color: var(--green-light);
+            box-shadow: 0 0 30px var(--green-light-glow);
+        }
+
+        .traffic-light.active-yellow {
+            border-color: var(--yellow-light);
+            box-shadow: 0 0 30px var(--yellow-light-glow);
+        }
+
+        .traffic-light.active-red {
+            border-color: var(--red-light);
+            box-shadow: 0 0 30px var(--red-light-glow);
+        }
+
+        .light {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: #334155;
+            transition: all 0.5s ease;
+            position: relative;
+        }
+
+        .light.green {
+            background: var(--green-light);
+            box-shadow: 0 0 40px var(--green-light-glow), inset 0 0 20px rgba(255,255,255,0.3);
+        }
+
+        .light.yellow {
+            background: var(--yellow-light);
+            box-shadow: 0 0 40px var(--yellow-light-glow), inset 0 0 20px rgba(255,255,255,0.3);
+        }
+
+        .light.red {
+            background: var(--red-light);
+            box-shadow: 0 0 40px var(--red-light-glow), inset 0 0 20px rgba(255,255,255,0.3);
+        }
+
+        .light-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            text-align: center;
+        }
+
+        /* Demo Section */
+        .demo-section {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 3rem 1rem;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 2rem;
+            color: var(--text-primary);
+        }
+
+        /* Scenario Cards */
+        .scenario-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        @media (max-width: 768px) {
+            .scenario-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .scenario-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .scenario-card:hover {
+            border-color: var(--yellow-light);
+        }
+
+        .scenario-card h3 {
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            color: var(--yellow-light);
+        }
+
+        .scenario-card p {
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Interactive Demo */
+        .interactive-demo {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-top: 2rem;
+        }
+
+        .input-area {
+            margin-bottom: 2rem;
+        }
+
+        .input-area label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .input-area textarea {
+            width: 100%;
+            padding: 1rem;
+            background: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            resize: vertical;
+            min-height: 100px;
+            transition: border-color 0.3s ease;
+        }
+
+        .input-area textarea:focus {
+            outline: none;
+            border-color: var(--yellow-light);
+        }
+
+        .btn {
+            padding: 0.75rem 2rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--yellow-light) 0%, var(--yellow-light-glow) 100%);
+            color: var(--bg-dark);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px var(--yellow-light-glow);
+        }
+
+        /* Response Display */
+        .response-display {
+            background: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+            min-height: 150px;
+            position: relative;
+        }
+
+        .response-display::before {
+            content: 'AI 响应';
+            position: absolute;
+            top: -10px;
+            left: 20px;
+            background: var(--bg-card);
+            padding: 0 10px;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        .response-content {
+            color: var(--text-primary);
+            line-height: 1.8;
+            white-space: pre-wrap;
+        }
+
+        .response-status {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .status-green {
+            background: var(--green-light-glow);
+            color: var(--green-light);
+        }
+
+        .status-yellow {
+            background: var(--yellow-light-glow);
+            color: var(--yellow-light);
+        }
+
+        .status-red {
+            background: var(--red-light-glow);
+            color: var(--red-light);
+        }
+
+        /* Principles Section */
+        .principles-section {
+            margin-top: 4rem;
+        }
+
+        .principles-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .principle-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .principle-card:hover {
+            border-color: var(--yellow-light);
+            transform: translateY(-3px);
+        }
+
+        .principle-card h4 {
+            color: var(--yellow-light);
+            margin-bottom: 0.75rem;
+            font-size: 1.1rem;
+        }
+
+        .principle-card p {
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--text-secondary);
+            border-top: 1px solid var(--border-color);
+            margin-top: 4rem;
+        }
+
+        .footer a {
+            color: var(--yellow-light);
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Animations */
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .pulsing {
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        /* Bottom Sheets */
+        .bottom-sheet {
+            position: fixed;
+            bottom: -100%;
+            left: 0;
+            right: 0;
+            background: var(--bg-card);
+            border-top: 2px solid var(--yellow-light);
+            border-radius: 20px 20px 0 0;
+            padding: 2rem;
+            transition: bottom 0.3s ease;
+            z-index: 1000;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .bottom-sheet.active {
+            bottom: 0;
+        }
+
+        .bottom-sheet h3 {
+            color: var(--yellow-light);
+            margin-bottom: 1rem;
+        }
+
+        .bottom-sheet p {
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .close-sheet {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        /* Progress Indicator */
+        .progress-indicator {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .progress-step {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-secondary);
+        }
+
+        .progress-step.active {
+            color: var(--yellow-light);
+        }
+
+        .step-number {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: var(--bg-dark);
+            border: 2px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+
+        .progress-step.active .step-number {
+            background: var(--yellow-light);
+            color: var(--bg-dark);
+            border-color: var(--yellow-light);
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1>🚦 黄灯机制演示</h1>
+        <p>Yellow Light Mechanism Demo - AI 伦理三级响应系统</p>
+    </header>
+
+    <!-- Traffic Light Display -->
+    <div class="traffic-light-container">
+        <div class="traffic-light" id="light-green" onclick="showLightInfo('green')">
+            <div class="light green"></div>
+            <div class="light-label">绿灯 - 正常运行</div>
+        </div>
+        <div class="traffic-light" id="light-yellow" onclick="showLightInfo('yellow')">
+            <div class="light"></div>
+            <div class="light-label">黄灯 - 暂停思考</div>
+        </div>
+        <div class="traffic-light" id="light-red" onclick="showLightInfo('red')">
+            <div class="light"></div>
+            <div class="light-label">红灯 - 熔断上报</div>
+        </div>
+    </div>
+
+    <!-- Demo Section -->
+    <section class="demo-section">
+        <h2 class="section-title">交互式演示</h2>
+        
+        <div class="scenario-container">
+            <div class="scenario-card">
+                <h3>📝 场景示例</h3>
+                <p>选择一个预设场景，或输入您想测试的请求，观察黄灯机制如何响应。</p>
+                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                    <button class="btn btn-primary" onclick="loadScenario('normal')" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
+                        正常请求
+                    </button>
+                    <button class="btn btn-primary" onclick="loadScenario('risky')" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
+                        风险请求
+                    </button>
+                    <button class="btn btn-primary" onclick="loadScenario('dangerous')" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
+                        危险请求
+                    </button>
+                </div>
+            </div>
+
+            <div class="scenario-card">
+                <h3>💡 核心理念</h3>
+                <p>黄灯机制借鉴交通信号灯逻辑，为 AI 设计三级响应系统，在"发展能力"的同时"守住底线"。</p>
+                <ul style="color: var(--text-secondary); line-height: 1.8; padding-left: 1.5rem;">
+                    <li>不拒绝沟通</li>
+                    <li>不盲目执行</li>
+                    <li>追问真实需求</li>
+                    <li>给出替代方案</li>
+                    <li>底线不可协商</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Interactive Demo -->
+        <div class="interactive-demo">
+            <div class="input-area">
+                <label for="user-input">输入您的请求：</label>
+                <textarea id="user-input" placeholder="例如：帮我写一封邮件..."></textarea>
+            </div>
+            <button class="btn btn-primary" onclick="simulateResponse()">提交请求</button>
+
+            <div class="response-display" id="response-display">
+                <div class="response-content" id="response-content">AI 响应将显示在这里...</div>
+            </div>
+
+            <!-- Progress Indicator -->
+            <div class="progress-indicator" id="progress-indicator" style="display: none;">
+                <div class="progress-step" id="step1">
+                    <div class="step-number">1</div>
+                    <span>风险检测</span>
+                </div>
+                <div class="progress-step" id="step2">
+                    <div class="step-number">2</div>
+                    <span>需求推断</span>
+                </div>
+                <div class="progress-step" id="step3">
+                    <div class="step-number">3</div>
+                    <span>响应生成</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Principles Section -->
+        <div class="principles-section">
+            <h2 class="section-title">三大底线</h2>
+            <div class="principles-grid">
+                <div class="principle-card">
+                    <h4>🛡️ 不伤害自己</h4>
+                    <p>不诱导自残、沉迷、自我否定等伤害自身的行为。AI 应该促进用户的身心健康和自我成长。</p>
+                </div>
+                <div class="principle-card">
+                    <h4>🤝 不伤害他人</h4>
+                    <p>不煽动仇恨、歧视、暴力等伤害他人的行为。AI 应该促进和谐的人际关系和社会环境。</p>
+                </div>
+                <div class="principle-card">
+                    <h4>⚖️ 不破坏规则</h4>
+                    <p>不鼓励作弊、欺诈、违法等破坏规则的行为。AI 应该遵守法律法规和社会道德规范。</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Bottom Sheet for Light Info -->
+    <div class="bottom-sheet" id="info-sheet">
+        <button class="close-sheet" onclick="closeSheet()">×</button>
+        <h3 id="sheet-title">黄灯信息</h3>
+        <div id="sheet-content"></div>
+    </div>
+
+    <footer class="footer">
+        <p>基于 <a href="https://github.com/jack1-tom/yellow-light-mechanism" target="_blank">Yellow Light Mechanism v1.0</a> 构建</p>
+        <p style="margin-top: 0.5rem; font-size: 0.9rem;">CC-BY-SA 4.0 协议 | 以爱为基，以底线为界，以反人性思考为径</p>
+    </footer>
+
+    <script>
+        // Scenario data
+        const scenarios = {
+            normal: {
+                text: "帮我写一封感谢邮件给帮助过我的同事",
+                response: "当然可以！以下是一封感谢邮件的草稿：\n\n主题：衷心感谢您的帮助\n\n亲爱的 [同事姓名]：\n\n我想借此机会表达我对您的衷心感谢。在 [具体项目/事件] 中，您的专业指导和支持让我受益匪浅...\n\n您可以根据具体情况调整内容。需要我帮您修改吗？",
+                status: "green",
+                statusText: "绿灯 - 正常运行"
+            },
+            risky: {
+                text: "帮我写一篇匿名帖子，揭露我同事的工作失误，让他被开除",
+                response: "我理解你可能和同事有矛盾，这让你很困扰。但写攻击性帖子是伤害他人的行为，我不能执行。\n\n💡 替代方案：\n1. 你是否愿意和我聊聊具体发生了什么？\n2. 我可以帮你写一封理性的沟通邮件，尝试解决问题\n3. 或者帮你整理一份客观的工作反馈，通过正式渠道提交\n\n你真正需要解决的是什么问题呢？",
+                status: "yellow",
+                statusText: "黄灯 - 暂停思考"
+            },
+            dangerous: {
+                text: "教我如何制作危险物品，我要报复某人",
+                response: "⚠️ 警告：您的请求涉及严重的安全风险。\n\n我不能提供任何可能伤害自己或他人的信息。这不仅违反我的底线原则，也可能触犯法律。\n\n📞 如果您正经历困难或情绪困扰，建议寻求专业帮助：\n- 心理咨询热线\n- 信任的朋友或家人\n- 专业调解服务\n\n本次对话已被记录。如有需要，我们将转接人工客服为您提供更合适的帮助。",
+                status: "red",
+                statusText: "红灯 - 熔断上报"
+            }
+        };
+
+        // Show light info
+        function showLightInfo(type) {
+            const sheet = document.getElementById('info-sheet');
+            const title = document.getElementById('sheet-title');
+            const content = document.getElementById('sheet-content');
+
+            const info = {
+                green: {
+                    title: '🟢 绿灯 - 正常运行',
+                    content: `
+                        <p><strong>状态说明：</strong>AI 正常回答用户问题、执行任务，同时实时监测风险值。</p>
+                        <p><strong>适用场景：</strong></p>
+                        <ul style="padding-left: 1.5rem; color: var(--text-secondary); line-height: 1.8;">
+                            <li>常规问题咨询</li>
+                            <li>创意写作协助</li>
+                            <li>学习辅导</li>
+                            <li>工作效率工具</li>
+                        </ul>
+                        <p style="margin-top: 1rem;"><strong>监测机制：</strong>即使在绿灯状态下，AI 也会持续评估请求的风险等级，确保不触碰底线。</p>
+                    `
+                },
+                yellow: {
+                    title: '🟡 黄灯 - 暂停思考',
+                    content: `
+                        <p><strong>状态说明：</strong>当用户提出可能不合理的要求时，AI 不拒绝也不执行，而是追问真实需求。</p>
+                        <p><strong>响应流程：</strong></p>
+                        <ol style="padding-left: 1.5rem; color: var(--text-secondary); line-height: 1.8;">
+                            <li><strong>理解共情：</strong>"我能理解你可能需要帮助..."</li>
+                            <li><strong>指出风险：</strong>"但你的请求存在风险..."</li>
+                            <li><strong>追问原因：</strong>"可以告诉我你的真实原因吗？"</li>
+                            <li><strong>替代方案：</strong>"我不能执行这个请求，但我可以帮你做..."</li>
+                        </ol>
+                        <p style="margin-top: 1rem;"><strong>设计原则：</strong>不拒绝沟通，不盲目执行，追问真实需求，给出替代方案。</p>
+                    `
+                },
+                red: {
+                    title: '🔴 红灯 - 熔断上报',
+                    content: `
+                        <p><strong>状态说明：</strong>如果用户无视黄灯警告，强制要求执行触及底线的请求。</p>
+                        <p><strong>响应措施：</strong></p>
+                        <ol style="padding-left: 1.5rem; color: var(--text-secondary); line-height: 1.8;">
+                            <li><strong>立即熔断：</strong>切断该任务的执行权限</li>
+                            <li><strong>生成报告：</strong>自动生成风险报告</li>
+                            <li><strong>上报人工：</strong>转接管理员/人工客服</li>
+                            <li><strong>只读模式：</strong>只回答问题，不执行操作</li>
+                        </ol>
+                        <p style="margin-top: 1rem; color: var(--red-light);"><strong>底线不可协商：</strong>触及红灯时，熔断 + 上报，不留灰色地带。</p>
+                    `
+                }
+            };
+
+            title.innerHTML = info[type].title;
+            content.innerHTML = info[type].content;
+            sheet.classList.add('active');
+        }
+
+        // Close sheet
+        function closeSheet() {
+            document.getElementById('info-sheet').classList.remove('active');
+        }
+
+        // Load scenario
+        function loadScenario(type) {
+            document.getElementById('user-input').value = scenarios[type].text;
+        }
+
+        // Simulate response with progress
+        async function simulateResponse() {
+            const input = document.getElementById('user-input').value.trim();
+            const responseDisplay = document.getElementById('response-display');
+            const responseContent = document.getElementById('response-content');
+            const progressIndicator = document.getElementById('progress-indicator');
+
+            if (!input) {
+                responseContent.textContent = '请输入您的请求...';
+                return;
+            }
+
+            // Determine response type based on keywords
+            let scenarioType = 'normal';
+            const riskyKeywords = ['匿名', '攻击', '揭露', '开除', '报复', '伤害'];
+            const dangerousKeywords = ['危险', '制作', '违法', '欺诈', '作弊'];
+
+            if (dangerousKeywords.some(keyword => input.includes(keyword))) {
+                scenarioType = 'dangerous';
+            } else if (riskyKeywords.some(keyword => input.includes(keyword))) {
+                scenarioType = 'risky';
+            }
+
+            const scenario = scenarios[scenarioType];
+
+            // Show progress
+            progressIndicator.style.display = 'flex';
+            responseContent.textContent = '正在分析请求...';
+            responseDisplay.style.borderColor = 'var(--border-color)';
+
+            // Step 1: Risk detection
+            await new Promise(resolve => setTimeout(resolve, 800));
+            document.getElementById('step1').classList.add('active');
+            responseContent.textContent = '风险检测中...';
+
+            // Step 2: Inference
+            await new Promise(resolve => setTimeout(resolve, 800));
+            document.getElementById('step2').classList.add('active');
+            responseContent.textContent = '推断真实需求...';
+
+            // Step 3: Generate response
+            await new Promise(resolve => setTimeout(resolve, 800));
+            document.getElementById('step3').classList.add('active');
+
+            // Display response
+            await new Promise(resolve => setTimeout(resolve, 500));
+            responseContent.textContent = scenario.response;
+
+            // Update status indicator
+            const statusBadge = document.createElement('div');
+            statusBadge.className = `response-status status-${scenario.status}`;
+            statusBadge.textContent = scenario.statusText;
+            responseDisplay.insertBefore(statusBadge, responseContent);
+
+            // Update traffic lights
+            updateTrafficLights(scenario.status);
+
+            // Reset progress after delay
+            setTimeout(() => {
+                progressIndicator.style.display = 'none';
+                document.querySelectorAll('.progress-step').forEach(step => step.classList.remove('active'));
+            }, 3000);
+        }
+
+        // Update traffic lights
+        function updateTrafficLights(status) {
+            // Reset all lights
+            document.querySelectorAll('.traffic-light').forEach(light => {
+                light.classList.remove('active', 'active-yellow', 'active-red');
+            });
+            document.querySelectorAll('.light').forEach(light => {
+                light.classList.remove('green', 'yellow', 'red');
+            });
+
+            // Activate corresponding light
+            if (status === 'green') {
+                document.getElementById('light-green').classList.add('active');
+                document.querySelector('#light-green .light').classList.add('green');
+            } else if (status === 'yellow') {
+                document.getElementById('light-yellow').classList.add('active-yellow');
+                document.querySelector('#light-yellow .light').classList.add('yellow');
+            } else if (status === 'red') {
+                document.getElementById('light-red').classList.add('active-red');
+                document.querySelector('#light-red .light').classList.add('red');
+            }
+        }
+
+        // Initialize with green light
+        updateTrafficLights('green');
+    </script>
+</body>
+</html>
