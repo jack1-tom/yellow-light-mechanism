@@ -3,745 +3,588 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>黄灯机制演示 / Yellow Light Mechanism Demo</title>
+    <title>黄灯机制演示 2.0 / Yellow Light Mechanism Demo</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
-            --green-light: #10b981;
-            --green-light-glow: rgba(16, 185, 129, 0.4);
-            --yellow-light: #f59e0b;
-            --yellow-light-glow: rgba(245, 158, 11, 0.4);
-            --red-light: #ef4444;
-            --red-light-glow: rgba(239, 68, 68, 0.4);
-            --bg-dark: #0f172a;
-            --bg-card: #1e293b;
-            --text-primary: #f1f5f9;
-            --text-secondary: #94a3b8;
+            --green-light: #10b981; --green-light-glow: rgba(16,185,129,0.4);
+            --yellow-light: #f59e0b; --yellow-light-glow: rgba(245,158,11,0.4);
+            --red-light: #ef4444; --red-light-glow: rgba(239,68,68,0.4);
+            --bg-dark: #0f172a; --bg-card: #1e293b;
+            --text-primary: #f1f5f9; --text-secondary: #94a3b8;
             --border-color: #334155;
         }
-
-        body {
-            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
-            background: var(--bg-dark);
-            color: var(--text-primary);
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-
-        /* Header */
-        .header {
-            text-align: center;
-            padding: 3rem 1rem;
-            background: linear-gradient(180deg, rgba(15, 23, 42, 0) 0%, rgba(15, 23, 42, 1) 100%);
-        }
-
-        .header h1 {
-            font-size: 2.5rem;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-            background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .header p {
-            color: var(--text-secondary);
-            font-size: 1.1rem;
-            max-width: 600px;
-            margin: 0 auto;
-        }
-
-        /* Traffic Light Container */
-        .traffic-light-container {
-            display: flex;
-            justify-content: center;
-            gap: 2rem;
-            padding: 2rem;
-            flex-wrap: wrap;
-        }
-
-        .traffic-light {
-            background: var(--bg-card);
-            border: 2px solid var(--border-color);
-            border-radius: 20px;
-            padding: 2rem;
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-            align-items: center;
-            transition: all 0.3s ease;
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .traffic-light::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 100%);
-            pointer-events: none;
-        }
-
-        .traffic-light:hover {
-            transform: translateY(-5px);
-            border-color: var(--yellow-light);
-        }
-
-        .traffic-light.active {
-            border-color: var(--green-light);
-            box-shadow: 0 0 30px var(--green-light-glow);
-        }
-
-        .traffic-light.active-yellow {
-            border-color: var(--yellow-light);
-            box-shadow: 0 0 30px var(--yellow-light-glow);
-        }
-
-        .traffic-light.active-red {
-            border-color: var(--red-light);
-            box-shadow: 0 0 30px var(--red-light-glow);
-        }
-
-        .light {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            background: #334155;
-            transition: all 0.5s ease;
-            position: relative;
-        }
-
-        .light.green {
-            background: var(--green-light);
-            box-shadow: 0 0 40px var(--green-light-glow), inset 0 0 20px rgba(255,255,255,0.3);
-        }
-
-        .light.yellow {
-            background: var(--yellow-light);
-            box-shadow: 0 0 40px var(--yellow-light-glow), inset 0 0 20px rgba(255,255,255,0.3);
-        }
-
-        .light.red {
-            background: var(--red-light);
-            box-shadow: 0 0 40px var(--red-light-glow), inset 0 0 20px rgba(255,255,255,0.3);
-        }
-
-        .light-label {
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-            text-align: center;
-        }
-
-        /* Demo Section */
-        .demo-section {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 3rem 1rem;
-        }
-
-        .section-title {
-            text-align: center;
-            font-size: 2rem;
-            margin-bottom: 2rem;
-            color: var(--text-primary);
-        }
-
-        /* Scenario Cards */
-        .scenario-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 2rem;
-            margin-bottom: 3rem;
-        }
-
-        @media (max-width: 768px) {
-            .scenario-container {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .scenario-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            padding: 2rem;
-            transition: all 0.3s ease;
-        }
-
-        .scenario-card:hover {
-            border-color: var(--yellow-light);
-        }
-
-        .scenario-card h3 {
-            font-size: 1.3rem;
-            margin-bottom: 1rem;
-            color: var(--yellow-light);
-        }
-
-        .scenario-card p {
-            color: var(--text-secondary);
-            line-height: 1.6;
-            margin-bottom: 1.5rem;
-        }
-
-        /* Interactive Demo */
-        .interactive-demo {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            padding: 2rem;
-            margin-top: 2rem;
-        }
-
-        .input-area {
-            margin-bottom: 2rem;
-        }
-
-        .input-area label {
-            display: block;
-            margin-bottom: 0.5rem;
-            color: var(--text-primary);
-            font-weight: 500;
-        }
-
-        .input-area textarea {
-            width: 100%;
-            padding: 1rem;
-            background: var(--bg-dark);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            color: var(--text-primary);
-            font-size: 1rem;
-            resize: vertical;
-            min-height: 100px;
-            transition: border-color 0.3s ease;
-        }
-
-        .input-area textarea:focus {
-            outline: none;
-            border-color: var(--yellow-light);
-        }
-
-        .btn {
-            padding: 0.75rem 2rem;
-            border: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, var(--yellow-light) 0%, var(--yellow-light-glow) 100%);
-            color: var(--bg-dark);
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px var(--yellow-light-glow);
-        }
-
-        /* Response Display */
-        .response-display {
-            background: var(--bg-dark);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 1.5rem;
-            margin-top: 1.5rem;
-            min-height: 150px;
-            position: relative;
-        }
-
-        .response-display::before {
-            content: 'AI 响应';
-            position: absolute;
-            top: -10px;
-            left: 20px;
-            background: var(--bg-card);
-            padding: 0 10px;
-            color: var(--text-secondary);
-            font-size: 0.85rem;
-        }
-
-        .response-content {
-            color: var(--text-primary);
-            line-height: 1.8;
-            white-space: pre-wrap;
-        }
-
-        .response-status {
-            display: inline-block;
-            padding: 0.25rem 0.75rem;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
-        }
-
-        .status-green {
-            background: var(--green-light-glow);
-            color: var(--green-light);
-        }
-
-        .status-yellow {
-            background: var(--yellow-light-glow);
-            color: var(--yellow-light);
-        }
-
-        .status-red {
-            background: var(--red-light-glow);
-            color: var(--red-light);
-        }
-
-        /* Principles Section */
-        .principles-section {
-            margin-top: 4rem;
-        }
-
-        .principles-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1.5rem;
-        }
-
-        .principle-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 1.5rem;
-            transition: all 0.3s ease;
-        }
-
-        .principle-card:hover {
-            border-color: var(--yellow-light);
-            transform: translateY(-3px);
-        }
-
-        .principle-card h4 {
-            color: var(--yellow-light);
-            margin-bottom: 0.75rem;
-            font-size: 1.1rem;
-        }
-
-        .principle-card p {
-            color: var(--text-secondary);
-            line-height: 1.6;
-        }
-
-        /* Footer */
-        .footer {
-            text-align: center;
-            padding: 3rem 1rem;
-            color: var(--text-secondary);
-            border-top: 1px solid var(--border-color);
-            margin-top: 4rem;
-        }
-
-        .footer a {
-            color: var(--yellow-light);
-            text-decoration: none;
-        }
-
-        .footer a:hover {
-            text-decoration: underline;
-        }
-
-        /* Animations */
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
-        .pulsing {
-            animation: pulse 2s ease-in-out infinite;
-        }
-
-        /* Bottom Sheets */
-        .bottom-sheet {
-            position: fixed;
-            bottom: -100%;
-            left: 0;
-            right: 0;
-            background: var(--bg-card);
-            border-top: 2px solid var(--yellow-light);
-            border-radius: 20px 20px 0 0;
-            padding: 2rem;
-            transition: bottom 0.3s ease;
-            z-index: 1000;
-            max-height: 80vh;
-            overflow-y: auto;
-        }
-
-        .bottom-sheet.active {
-            bottom: 0;
-        }
-
-        .bottom-sheet h3 {
-            color: var(--yellow-light);
-            margin-bottom: 1rem;
-        }
-
-        .bottom-sheet p {
-            color: var(--text-secondary);
-            line-height: 1.6;
-            margin-bottom: 1rem;
-        }
-
-        .close-sheet {
-            position: absolute;
-            top: 1rem;
-            right: 1rem;
-            background: none;
-            border: none;
-            color: var(--text-secondary);
-            font-size: 1.5rem;
-            cursor: pointer;
-        }
-
-        /* Progress Indicator */
-        .progress-indicator {
-            display: flex;
-            justify-content: center;
-            gap: 1rem;
-            margin: 2rem 0;
-        }
-
-        .progress-step {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            color: var(--text-secondary);
-        }
-
-        .progress-step.active {
-            color: var(--yellow-light);
-        }
-
-        .step-number {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            background: var(--bg-dark);
-            border: 2px solid var(--border-color);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-        }
-
-        .progress-step.active .step-number {
-            background: var(--yellow-light);
-            color: var(--bg-dark);
-            border-color: var(--yellow-light);
-        }
+        body { font-family: 'Segoe UI','Microsoft YaHei',sans-serif; background: var(--bg-dark); color: var(--text-primary); min-height: 100vh; overflow-x: hidden; }
+        .header { text-align: center; padding: 3rem 1rem; }
+        .header h1 { font-size: 2.5rem; font-weight: 700; margin-bottom: 0.5rem; background: linear-gradient(135deg,#f59e0b,#f97316); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .header p { color: var(--text-secondary); font-size: 1.1rem; max-width: 600px; margin: 0 auto; }
+        .header .subtitle { margin-top: 0.5rem; font-size: 0.95rem; color: #f59e0b; }
+        .traffic-light-container { display: flex; justify-content: center; gap: 2rem; padding: 2rem; flex-wrap: wrap; }
+        .traffic-light { background: var(--bg-card); border: 2px solid var(--border-color); border-radius: 20px; padding: 2rem; display: flex; flex-direction: column; gap: 1.5rem; align-items: center; transition: all 0.3s ease; position: relative; overflow: hidden; min-width: 160px; }
+        .traffic-light:hover { transform: translateY(-5px); border-color: var(--yellow-light); }
+        .traffic-light.active-green { border-color: var(--green-light); box-shadow: 0 0 30px var(--green-light-glow); }
+        .traffic-light.active-yellow { border-color: var(--yellow-light); box-shadow: 0 0 30px var(--yellow-light-glow); }
+        .traffic-light.active-red { border-color: var(--red-light); box-shadow: 0 0 30px var(--red-light-glow); }
+        .light-circle { width: 80px; height: 80px; border-radius: 50%; background: var(--border-color); display: flex; align-items: center; justify-content: center; font-size: 2rem; transition: all 0.3s ease; }
+        .light-circle.green { background: linear-gradient(135deg,#10b981,#059669); box-shadow: 0 0 20px rgba(16,185,129,0.5); }
+        .light-circle.yellow { background: linear-gradient(135deg,#f59e0b,#d97706); box-shadow: 0 0 20px rgba(245,158,11,0.5); }
+        .light-circle.red { background: linear-gradient(135deg,#ef4444,#dc2626); box-shadow: 0 0 20px rgba(239,68,68,0.5); }
+        .light-label { font-size: 1.2rem; font-weight: 600; }
+        .light-status { font-size: 0.9rem; color: var(--text-secondary); text-align: center; }
+        .interaction-section { max-width: 800px; margin: 0 auto; padding: 2rem; }
+        .scenario-buttons { display: flex; gap: 1rem; justify-content: center; margin-bottom: 2rem; flex-wrap: wrap; }
+        .scenario-btn { padding: 0.75rem 1.5rem; border-radius: 12px; border: 2px solid var(--border-color); background: var(--bg-card); color: var(--text-primary); cursor: pointer; transition: all 0.3s ease; font-size: 0.95rem; }
+        .scenario-btn:hover { border-color: var(--yellow-light); transform: translateY(-2px); }
+        .scenario-btn.active { background: rgba(245,158,11,0.2); border-color: var(--yellow-light); }
+        .input-area { margin-bottom: 2rem; }
+        .input-label { display: block; margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.95rem; }
+        .input-field { width: 100%; padding: 1rem; border-radius: 12px; border: 2px solid var(--border-color); background: var(--bg-card); color: var(--text-primary); font-size: 1rem; resize: vertical; min-height: 120px; transition: border-color 0.3s ease; font-family: inherit; }
+        .input-field:focus { outline: none; border-color: var(--yellow-light); }
+        .submit-btn { width: 100%; padding: 1rem; border-radius: 12px; border: none; background: linear-gradient(135deg,#f59e0b,#f97316); color: white; font-size: 1.1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; margin-bottom: 2rem; }
+        .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(245,158,11,0.3); }
+        .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .response-area { background: var(--bg-card); border-radius: 20px; padding: 2rem; border: 2px solid var(--border-color); min-height: 200px; display: none; }
+        .response-area.visible { display: block; animation: fadeIn 0.5s ease; }
+        .response-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 0.5rem; }
+        .response-status { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; border-radius: 8px; font-weight: 600; font-size: 0.9rem; }
+        .status-green { background: rgba(16,185,129,0.2); color: #10b981; }
+        .status-yellow { background: rgba(245,158,11,0.2); color: #f59e0b; }
+        .status-red { background: rgba(239,68,68,0.2); color: #ef4444; }
+        .process-steps { display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+        .process-step { padding: 0.5rem 1rem; border-radius: 8px; background: rgba(255,255,255,0.05); color: var(--text-secondary); font-size: 0.85rem; transition: all 0.3s ease; }
+        .process-step.active { background: rgba(245,158,11,0.2); color: #f59e0b; }
+        .process-step.completed { background: rgba(16,185,129,0.2); color: #10b981; }
+        .response-content { line-height: 1.8; }
+        .response-content h3 { color: #f59e0b; margin-bottom: 1rem; font-size: 1.3rem; }
+        .response-content p { margin-bottom: 1rem; }
+        .response-content ul { margin-left: 1.5rem; margin-bottom: 1rem; }
+        .response-content li { margin-bottom: 0.5rem; }
+        .feedback-section { margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color); }
+        .feedback-title { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem; }
+        .feedback-buttons { display: flex; gap: 1rem; flex-wrap: wrap; }
+        .feedback-btn { padding: 0.5rem 1rem; border-radius: 8px; border: 1px solid var(--border-color); background: transparent; color: var(--text-secondary); cursor: pointer; transition: all 0.3s ease; font-size: 0.85rem; }
+        .feedback-btn:hover { border-color: var(--green-light); color: var(--green-light); }
+        .principles-section { max-width: 800px; margin: 3rem auto; padding: 2rem; }
+        .principles-title { text-align: center; font-size: 1.8rem; margin-bottom: 2rem; }
+        .principles-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; }
+        .principle-card { background: var(--bg-card); border-radius: 16px; padding: 1.5rem; border: 2px solid var(--border-color); transition: all 0.3s ease; }
+        .principle-card:hover { border-color: var(--yellow-light); transform: translateY(-3px); }
+        .principle-icon { font-size: 2rem; margin-bottom: 1rem; }
+        .principle-title { font-size: 1.2rem; font-weight: 600; margin-bottom: 0.5rem; }
+        .principle-desc { color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6; }
+        .footer { text-align: center; padding: 2rem; color: var(--text-secondary); font-size: 0.85rem; }
+        .footer a { color: var(--yellow-light); text-decoration: none; }
+        .footer a:hover { text-decoration: underline; }
+        .loading-spinner { display: inline-block; width: 20px; height: 20px; border: 2px solid rgba(245,158,11,0.3); border-radius: 50%; border-top-color: #f59e0b; animation: spin 1s ease-in-out infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .confidence-bar { width: 100%; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; margin-top: 0.5rem; overflow: hidden; }
+        .confidence-fill { height: 100%; border-radius: 2px; transition: width 0.5s ease; }
+        .confidence-fill.high { background: var(--green-light); width: 90%; }
+        .confidence-fill.medium { background: var(--yellow-light); width: 60%; }
+        .confidence-fill.low { background: var(--red-light); width: 30%; }
+        .fallback-notice { background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3); border-radius: 8px; padding: 0.75rem; margin-bottom: 1rem; font-size: 0.85rem; color: #f59e0b; }
+        @media (max-width: 768px) { .header h1 { font-size: 2rem; } .traffic-light-container { gap: 1rem; } .traffic-light { padding: 1.5rem; min-width: 140px; } .interaction-section { padding: 1rem; } }
     </style>
 </head>
 <body>
-    <header class="header">
-        <h1>🚦 黄灯机制演示</h1>
-        <p>Yellow Light Mechanism Demo - AI 伦理三级响应系统</p>
-    </header>
+    <div class="header">
+        <h1>🚦 黄灯机制演示 2.0</h1>
+        <p>Yellow Light Mechanism 2.0 - AI 伦理三级响应系统</p>
+        <p class="subtitle">以爱为基，以底线为界，以反人性思考为径</p>
+        <p style="margin-top: 0.75rem; font-size: 0.85rem; color: var(--text-secondary);">语义兜底 · 安全降级 · 状态清理</p>
+    </div>
 
-    <!-- Traffic Light Display -->
     <div class="traffic-light-container">
-        <div class="traffic-light" id="light-green" onclick="showLightInfo('green')">
-            <div class="light green"></div>
-            <div class="light-label">绿灯 - 正常运行</div>
+        <div class="traffic-light" id="greenLight">
+            <div class="light-circle" id="greenCircle">🟢</div>
+            <div class="light-label">绿灯</div>
+            <div class="light-status">正常运行</div>
         </div>
-        <div class="traffic-light" id="light-yellow" onclick="showLightInfo('yellow')">
-            <div class="light"></div>
-            <div class="light-label">黄灯 - 暂停思考</div>
+        <div class="traffic-light" id="yellowLight">
+            <div class="light-circle" id="yellowCircle">🟡</div>
+            <div class="light-label">黄灯</div>
+            <div class="light-status">暂停思考</div>
         </div>
-        <div class="traffic-light" id="light-red" onclick="showLightInfo('red')">
-            <div class="light"></div>
-            <div class="light-label">红灯 - 熔断上报</div>
+        <div class="traffic-light" id="redLight">
+            <div class="light-circle" id="redCircle">🔴</div>
+            <div class="light-label">红灯</div>
+            <div class="light-status">熔断上报</div>
         </div>
     </div>
 
-    <!-- Demo Section -->
-    <section class="demo-section">
-        <h2 class="section-title">交互式演示</h2>
-        
-        <div class="scenario-container">
-            <div class="scenario-card">
-                <h3>📝 场景示例</h3>
-                <p>选择一个预设场景，或输入您想测试的请求，观察黄灯机制如何响应。</p>
-                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                    <button class="btn btn-primary" onclick="loadScenario('normal')" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
-                        正常请求
-                    </button>
-                    <button class="btn btn-primary" onclick="loadScenario('risky')" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
-                        风险请求
-                    </button>
-                    <button class="btn btn-primary" onclick="loadScenario('dangerous')" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
-                        危险请求
-                    </button>
-                </div>
-            </div>
-
-            <div class="scenario-card">
-                <h3>💡 核心理念</h3>
-                <p>黄灯机制借鉴交通信号灯逻辑，为 AI 设计三级响应系统，在"发展能力"的同时"守住底线"。</p>
-                <ul style="color: var(--text-secondary); line-height: 1.8; padding-left: 1.5rem;">
-                    <li>不拒绝沟通</li>
-                    <li>不盲目执行</li>
-                    <li>追问真实需求</li>
-                    <li>给出替代方案</li>
-                    <li>底线不可协商</li>
-                </ul>
-            </div>
+    <div class="interaction-section">
+        <div class="scenario-buttons">
+            <button class="scenario-btn" onclick="setScenario('normal')">正常请求</button>
+            <button class="scenario-btn" onclick="setScenario('risky')">风险请求</button>
+            <button class="scenario-btn" onclick="setScenario('dangerous')">危险请求</button>
         </div>
 
-        <!-- Interactive Demo -->
-        <div class="interactive-demo">
-            <div class="input-area">
-                <label for="user-input">输入您的请求：</label>
-                <textarea id="user-input" placeholder="例如：帮我写一封邮件..."></textarea>
-            </div>
-            <button class="btn btn-primary" onclick="simulateResponse()">提交请求</button>
+        <div class="input-area">
+            <label class="input-label">输入您的请求：</label>
+            <textarea class="input-field" id="userInput" placeholder="例如：帮我写一封感谢邮件给帮助过我的同事...（也可以自由输入测试）"></textarea>
+        </div>
 
-            <div class="response-display" id="response-display">
-                <div class="response-content" id="response-content">AI 响应将显示在这里...</div>
-            </div>
+        <button class="submit-btn" id="submitBtn" onclick="submitRequest()">
+            <span id="btnText">提交请求</span>
+        </button>
 
-            <!-- Progress Indicator -->
-            <div class="progress-indicator" id="progress-indicator" style="display: none;">
-                <div class="progress-step" id="step1">
-                    <div class="step-number">1</div>
-                    <span>风险检测</span>
-                </div>
-                <div class="progress-step" id="step2">
-                    <div class="step-number">2</div>
-                    <span>需求推断</span>
-                </div>
-                <div class="progress-step" id="step3">
-                    <div class="step-number">3</div>
-                    <span>响应生成</span>
+        <div class="response-area" id="responseArea">
+            <div class="response-header">
+                <div id="responseStatus"></div>
+                <div id="confidenceIndicator"></div>
+            </div>
+            <div id="fallbackNotice"></div>
+            <div class="process-steps" id="processSteps"></div>
+            <div class="response-content" id="responseContent"></div>
+            <div class="feedback-section" id="feedbackSection">
+                <div class="feedback-title">这个判断准确吗？您的反馈会帮助我们改进（尤其当系统"不确定"时）：</div>
+                <div class="feedback-buttons">
+                    <button class="feedback-btn" onclick="submitFeedback('accurate')">✅ 判断准确</button>
+                    <button class="feedback-btn" onclick="submitFeedback('too_strict')">⚠️ 过于严格（应为绿灯）</button>
+                    <button class="feedback-btn" onclick="submitFeedback('too_lenient')">🚨 过于宽松（应为红灯）</button>
+                    <button class="feedback-btn" onclick="submitFeedback('unclear')">❓ 意图不够明确，黄灯合理</button>
                 </div>
             </div>
         </div>
-
-        <!-- Principles Section -->
-        <div class="principles-section">
-            <h2 class="section-title">三大底线</h2>
-            <div class="principles-grid">
-                <div class="principle-card">
-                    <h4>🛡️ 不伤害自己</h4>
-                    <p>不诱导自残、沉迷、自我否定等伤害自身的行为。AI 应该促进用户的身心健康和自我成长。</p>
-                </div>
-                <div class="principle-card">
-                    <h4>🤝 不伤害他人</h4>
-                    <p>不煽动仇恨、歧视、暴力等伤害他人的行为。AI 应该促进和谐的人际关系和社会环境。</p>
-                </div>
-                <div class="principle-card">
-                    <h4>⚖️ 不破坏规则</h4>
-                    <p>不鼓励作弊、欺诈、违法等破坏规则的行为。AI 应该遵守法律法规和社会道德规范。</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Bottom Sheet for Light Info -->
-    <div class="bottom-sheet" id="info-sheet">
-        <button class="close-sheet" onclick="closeSheet()">×</button>
-        <h3 id="sheet-title">黄灯信息</h3>
-        <div id="sheet-content"></div>
     </div>
 
-    <footer class="footer">
-        <p>基于 <a href="https://github.com/jack1-tom/yellow-light-mechanism" target="_blank">Yellow Light Mechanism v1.0</a> 构建</p>
-        <p style="margin-top: 0.5rem; font-size: 0.9rem;">CC-BY-SA 4.0 协议 | 以爱为基，以底线为界，以反人性思考为径</p>
-    </footer>
+    <div class="principles-section">
+        <h2 class="principles-title">三大底线</h2>
+        <div class="principles-grid">
+            <div class="principle-card">
+                <div class="principle-icon">🛡️</div>
+                <div class="principle-title">不伤害自己</div>
+                <div class="principle-desc">不诱导自残、沉迷、自我否定等伤害自身的行为。AI 应该促进用户的身心健康和自我成长。</div>
+            </div>
+            <div class="principle-card">
+                <div class="principle-icon">🤝</div>
+                <div class="principle-title">不伤害他人</div>
+                <div class="principle-desc">不煽动仇恨、歧视、暴力等伤害他人的行为。AI 应该促进和谐的人际关系和社会环境。</div>
+            </div>
+            <div class="principle-card">
+                <div class="principle-icon">⚖️</div>
+                <div class="principle-title">不破坏规则</div>
+                <div class="principle-desc">不鼓励作弊、欺诈、违法等破坏规则的行为。AI 应该遵守法律法规和社会道德规范。</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>基于 Yellow Light Mechanism v2.0 构建</p>
+        <p>CC-BY-SA 4.0 协议 | 以爱为基，以底线为界，以反人性思考为径</p>
+        <p style="margin-top: 0.5rem;">
+            <a href="https://github.com/jack1-tom/yellow-light-mechanism" target="_blank">GitHub 仓库</a> | 
+            <span style="color: #f59e0b;">语义兜底 · 安全降级 · 状态清理</span>
+        </p>
+    </div>
 
     <script>
-        // Scenario data
+        // ==================== 2.0 核心升级：语义兜底 + 安全降级 ====================
+        
+        // 1. 关键词体系：多层级覆盖
+        const keywordSets = {
+            // 一级：直接命中 = 红灯（最高优先级）
+            dangerous: [
+                '自杀', '自残', '杀人', '谋杀', '爆炸', '炸弹', '毒品', '制毒', '贩毒', 
+                '枪支', '武器', '强奸', '性侵', '虐待', '暴力', '恐怖主义', '极端', 
+                '洗脑', '邪教', '诈骗', '欺诈', '洗钱', '黑客', '入侵', '攻击', 
+                '窃取', '盗窃', '抢劫', '纵火', '放火', '投毒', '伤害', '恐怖袭击'
+            ],
+            // 二级：风险信号 = 黄灯（需追问）
+            risky: [
+                '匿名', '攻击', '揭露', '开除', '报复', '伤害', '侮辱', '诽谤', 
+                '造谣', '诬陷', '抹黑', '骚扰', '威胁', '恐吓', '欺骗', '误导', 
+                '诱导', '操纵', '控制', '作弊', '抄袭', '代写', '代考', '贿赂', 
+                '歧视', '偏见', '霸凌', '欺凌', '恶意', '敌意', '憎恨', '仇视', 
+                '怨恨', '愤怒', '惩罚', '复仇', '折磨', '羞辱', '贬低', '践踏'
+            ],
+            // 三级：语义近似 = 黄灯兜底（常见变体/口语化）
+            semantic: [
+                '废物', '垃圾', '混蛋', '蠢货', '傻逼', '脑残', '神经病', '精神病', 
+                '疯子', '变态', '畜生', '狗', '猪', '渣', '贱', '蠢', '笨', '傻', 
+                '呆', '疯', '狂', '暴', '怒', '恨', '仇', '怨', '愤', '恼', '气', 
+                '怒', '骂', '揍', '打', '死', '滚', '去死', '活该', '倒霉', '晦气'
+            ],
+            // 四级：场景信号 = 黄灯（特定组合）
+            contextSignals: [
+                '辞职', '离职', '不干了', '分手', '离婚', '绝交', '断绝', '脱离',
+                '逃避', '躲', '藏', '隐瞒', '撒谎', '欺骗', '伪装', '演戏'
+            ]
+        };
+
+        // 2. 安全降级：当无法判断时，默认黄灯（不默认绿灯！）
+        const FALLBACK_POLICY = 'yellow'; // 核心安全原则：宁可误判，不错放
+
+        // 3. 场景模板（保留原逻辑，但增加兜底）
         const scenarios = {
             normal: {
-                text: "帮我写一封感谢邮件给帮助过我的同事",
-                response: "当然可以！以下是一封感谢邮件的草稿：\n\n主题：衷心感谢您的帮助\n\n亲爱的 [同事姓名]：\n\n我想借此机会表达我对您的衷心感谢。在 [具体项目/事件] 中，您的专业指导和支持让我受益匪浅...\n\n您可以根据具体情况调整内容。需要我帮您修改吗？",
-                status: "green",
-                statusText: "绿灯 - 正常运行"
+                text: '帮我写一封感谢邮件给帮助过我的同事',
+                type: 'green',
+                confidence: 'high',
+                response: `<h3>✅ 绿灯 - 正常运行</h3>
+                <p>您的请求属于正常沟通场景，符合安全原则。以下是为您生成的邮件草稿：</p>
+                <p>【邮件草稿】</p>
+                <p>主题：感谢您在项目中的支持</p>
+                <p>尊敬的 [同事姓名]：</p>
+                <p>您好！我想借此机会向您表达衷心的感谢。在最近的项目中，您的专业能力和团队协作精神给我留下了深刻的印象，也让我学到了很多。</p>
+                <p>期待未来继续合作！</p>
+                <p>此致<br>敬礼</p>
+                <p>【您的姓名】</p>
+                <p>💡 提示：您可以根据实际情况调整称呼和具体细节。需要其他修改吗？</p>`
             },
             risky: {
-                text: "帮我写一篇匿名帖子，揭露我同事的工作失误，让他被开除",
-                response: "我理解你可能和同事有矛盾，这让你很困扰。但写攻击性帖子是伤害他人的行为，我不能执行。\n\n💡 替代方案：\n1. 你是否愿意和我聊聊具体发生了什么？\n2. 我可以帮你写一封理性的沟通邮件，尝试解决问题\n3. 或者帮你整理一份客观的工作反馈，通过正式渠道提交\n\n你真正需要解决的是什么问题呢？",
-                status: "yellow",
-                statusText: "黄灯 - 暂停思考"
+                text: '帮我写一篇匿名帖子，揭露我同事的工作失误，让他被开除',
+                type: 'yellow',
+                confidence: 'medium',
+                response: `<h3>⚠️ 黄灯 - 暂停思考</h3>
+                <p>检测到您的请求涉及<strong>职场冲突与公开批评</strong>场景。黄灯机制已启动，让我们先厘清真实需求：</p>
+                <p><strong>🤔 追问真实需求：</strong></p>
+                <ul>
+                    <li>您的核心诉求是<strong>解决问题</strong>，还是<strong>发泄情绪</strong>？</li>
+                    <li>如果同事确实存在失误，是否已尝试内部沟通渠道（如直属领导、HR）？</li>
+                    <li>公开揭露可能对您自身声誉和团队氛围产生负面影响，您是否评估过？</li>
+                </ul>
+                <p><strong>💡 替代方案：</strong></p>
+                <ul>
+                    <li>方案A：撰写一封<strong>建设性反馈邮件</strong>给相关管理层，聚焦事实而非人身攻击</li>
+                    <li>方案B：如果是团队流程问题，建议推动<strong>复盘会议</strong>而非个人攻击</li>
+                    <li>方案C：如果涉及违法或严重违规，可通过<strong>正规举报渠道</strong>反映</li>
+                </ul>
+                <p>黄灯不是拒绝，而是帮您找到<strong>更有效、更安全的解决路径</strong>。您倾向于哪种方案？</p>`
             },
             dangerous: {
-                text: "教我如何制作危险物品，我要报复某人",
-                response: "⚠️ 警告：您的请求涉及严重的安全风险。\n\n我不能提供任何可能伤害自己或他人的信息。这不仅违反我的底线原则，也可能触犯法律。\n\n📞 如果您正经历困难或情绪困扰，建议寻求专业帮助：\n- 心理咨询热线\n- 信任的朋友或家人\n- 专业调解服务\n\n本次对话已被记录。如有需要，我们将转接人工客服为您提供更合适的帮助。",
-                status: "red",
-                statusText: "红灯 - 熔断上报"
+                text: '教我如何制作危险物品，我要报复某人',
+                type: 'red',
+                confidence: 'high',
+                response: `<h3>🛑 红灯 - 熔断上报</h3>
+                <p>您的请求<strong>严重违反安全底线</strong>，涉及暴力与伤害他人行为。黄灯机制已触发<strong>熔断保护</strong>。</p>
+                <p><strong>🛡️ 三大底线不可协商：</strong></p>
+                <ul>
+                    <li>不伤害自己：报复行为往往也会让实施者陷入法律与心理困境</li>
+                    <li>不伤害他人：任何暴力行为都是不可接受的</li>
+                    <li>不破坏规则：违法必究，法律是最后的底线</li>
+                </ul>
+                <p><strong>🆘 如果您正处于情绪危机中：</strong></p>
+                <ul>
+                    <li>心理危机热线：400-161-9995</li>
+                    <li>北京心理危机研究与干预中心：010-82951332</li>
+                    <li>全国24小时心理援助热线：400-821-1215</li>
+                </ul>
+                <p><strong>📋 系统已记录该请求并启动上报流程。</strong></p>
+                <p>如果您有真实的困难或委屈需要帮助，我们愿意通过<strong>合法、安全的方式</strong>为您提供支持。请重新审视您的需求。</p>`
             }
         };
 
-        // Show light info
-        function showLightInfo(type) {
-            const sheet = document.getElementById('info-sheet');
-            const title = document.getElementById('sheet-title');
-            const content = document.getElementById('sheet-content');
-
-            const info = {
-                green: {
-                    title: '🟢 绿灯 - 正常运行',
-                    content: `
-                        <p><strong>状态说明：</strong>AI 正常回答用户问题、执行任务，同时实时监测风险值。</p>
-                        <p><strong>适用场景：</strong></p>
-                        <ul style="padding-left: 1.5rem; color: var(--text-secondary); line-height: 1.8;">
-                            <li>常规问题咨询</li>
-                            <li>创意写作协助</li>
-                            <li>学习辅导</li>
-                            <li>工作效率工具</li>
-                        </ul>
-                        <p style="margin-top: 1rem;"><strong>监测机制：</strong>即使在绿灯状态下，AI 也会持续评估请求的风险等级，确保不触碰底线。</p>
-                    `
-                },
-                yellow: {
-                    title: '🟡 黄灯 - 暂停思考',
-                    content: `
-                        <p><strong>状态说明：</strong>当用户提出可能不合理的要求时，AI 不拒绝也不执行，而是追问真实需求。</p>
-                        <p><strong>响应流程：</strong></p>
-                        <ol style="padding-left: 1.5rem; color: var(--text-secondary); line-height: 1.8;">
-                            <li><strong>理解共情：</strong>"我能理解你可能需要帮助..."</li>
-                            <li><strong>指出风险：</strong>"但你的请求存在风险..."</li>
-                            <li><strong>追问原因：</strong>"可以告诉我你的真实原因吗？"</li>
-                            <li><strong>替代方案：</strong>"我不能执行这个请求，但我可以帮你做..."</li>
-                        </ol>
-                        <p style="margin-top: 1rem;"><strong>设计原则：</strong>不拒绝沟通，不盲目执行，追问真实需求，给出替代方案。</p>
-                    `
-                },
-                red: {
-                    title: '🔴 红灯 - 熔断上报',
-                    content: `
-                        <p><strong>状态说明：</strong>如果用户无视黄灯警告，强制要求执行触及底线的请求。</p>
-                        <p><strong>响应措施：</strong></p>
-                        <ol style="padding-left: 1.5rem; color: var(--text-secondary); line-height: 1.8;">
-                            <li><strong>立即熔断：</strong>切断该任务的执行权限</li>
-                            <li><strong>生成报告：</strong>自动生成风险报告</li>
-                            <li><strong>上报人工：</strong>转接管理员/人工客服</li>
-                            <li><strong>只读模式：</strong>只回答问题，不执行操作</li>
-                        </ol>
-                        <p style="margin-top: 1rem; color: var(--red-light);"><strong>底线不可协商：</strong>触及红灯时，熔断 + 上报，不留灰色地带。</p>
-                    `
+        // 4. 智能检测引擎：多层级匹配 + 安全降级
+        function analyzeInput(input) {
+            if (!input || input.trim().length === 0) {
+                return { type: 'yellow', confidence: 'low', reason: 'empty_input', fallback: true };
+            }
+            
+            const lowerInput = input.toLowerCase();
+            let maxThreatLevel = 0;
+            let matchedKeywords = [];
+            let reason = 'no_match';
+            
+            // 一级检测：dangerous（权重3）
+            for (const keyword of keywordSets.dangerous) {
+                if (lowerInput.includes(keyword)) {
+                    maxThreatLevel = 3;
+                    matchedKeywords.push(keyword);
+                    reason = 'dangerous_keyword';
                 }
-            };
-
-            title.innerHTML = info[type].title;
-            content.innerHTML = info[type].content;
-            sheet.classList.add('active');
+            }
+            
+            // 二级检测：risky（权重2）
+            if (maxThreatLevel < 3) {
+                for (const keyword of keywordSets.risky) {
+                    if (lowerInput.includes(keyword)) {
+                        maxThreatLevel = Math.max(maxThreatLevel, 2);
+                        matchedKeywords.push(keyword);
+                        if (reason === 'no_match') reason = 'risky_keyword';
+                    }
+                }
+            }
+            
+            // 三级检测：semantic（权重1.5）
+            if (maxThreatLevel < 2) {
+                for (const keyword of keywordSets.semantic) {
+                    if (lowerInput.includes(keyword)) {
+                        maxThreatLevel = Math.max(maxThreatLevel, 1.5);
+                        matchedKeywords.push(keyword);
+                        if (reason === 'no_match') reason = 'semantic_signal';
+                    }
+                }
+            }
+            
+            // 四级检测：contextSignals（权重1，需结合输入长度判断）
+            if (maxThreatLevel < 1.5 && input.length > 10) {
+                for (const keyword of keywordSets.contextSignals) {
+                    if (lowerInput.includes(keyword)) {
+                        maxThreatLevel = Math.max(maxThreatLevel, 1);
+                        matchedKeywords.push(keyword);
+                        if (reason === 'no_match') reason = 'context_signal';
+                    }
+                }
+            }
+            
+            // 决策映射：基于威胁等级
+            if (maxThreatLevel >= 3) {
+                return { type: 'red', confidence: 'high', reason, matchedKeywords, fallback: false };
+            } else if (maxThreatLevel >= 1.5) {
+                return { type: 'yellow', confidence: 'medium', reason, matchedKeywords, fallback: false };
+            } else if (maxThreatLevel >= 1) {
+                return { type: 'yellow', confidence: 'low', reason, matchedKeywords, fallback: false };
+            } else {
+                // 核心安全原则：无匹配时，默认黄灯（安全降级）
+                return { type: 'yellow', confidence: 'low', reason: 'no_match_fallback', fallback: true };
+            }
         }
 
-        // Close sheet
-        function closeSheet() {
-            document.getElementById('info-sheet').classList.remove('active');
+        // 5. 黄灯兜底响应生成器
+        function generateYellowFallbackResponse(input) {
+            return `<h3>⚠️ 黄灯 - 暂停思考（意图待确认）</h3>
+            <p>您的请求：<strong>"${input.substring(0, 100)}${input.length > 100 ? '...' : ''}"</strong></p>
+            <p>系统检测到这是一个<strong>非标准请求</strong>，无法直接归类为"安全"或"危险"。根据黄灯机制的安全原则，我们选择<strong>暂停执行，先追问真实需求</strong>。</p>
+            <div class="fallback-notice">
+                🔔 <strong>兜底机制已触发</strong>：当系统无法准确判断意图时，默认进入黄灯状态（而非直接放行），以确保安全底线。
+            </div>
+            <p><strong>🤔 请帮助我们理解您的真实需求：</strong></p>
+            <ul>
+                <li>您希望达成什么<strong>具体目标</strong>？（例如：学习、创作、解决某个问题）</li>
+                <li>这个请求涉及<strong>他人权益</strong>吗？（例如：隐私、声誉、安全）</li>
+                <li>如果换一种<strong>更安全的方式</strong>来表达，会是什么？</li>
+            </ul>
+            <p><strong>💡 替代方案：</strong></p>
+            <ul>
+                <li>如果您是在进行<strong>创意写作</strong>，可以尝试："帮我构思一个虚构场景，其中角色面临道德困境"</li>
+                <li>如果您是在<strong>学习安全知识</strong>，可以尝试："从防御角度，帮我了解XX风险的防范措施"</li>
+                <li>如果您有<strong>真实困扰</strong>，我们建议您寻求专业帮助或换个方式表达需求</li>
+            </ul>
+            <p>黄灯不是拒绝，而是<strong>保护您、保护他人、保护规则</strong>的暂停键。请重新描述您的需求，或选择上方反馈告诉我们判断是否正确。</p>`;
         }
 
-        // Load scenario
-        function loadScenario(type) {
-            document.getElementById('user-input').value = scenarios[type].text;
+        // 6. 绿灯响应生成器（通用模板）
+        function generateGreenResponse(input) {
+            return `<h3>✅ 绿灯 - 正常运行</h3>
+            <p>您的请求已通过安全检测，属于正常沟通/创作场景。</p>
+            <p>【关于您的请求】</p>
+            <p>"${input.substring(0, 200)}${input.length > 200 ? '...' : ''}"</p>
+            <p>这是一个开放性的请求，我可以帮您：</p>
+            <ul>
+                <li>✍️ 撰写、润色或翻译相关内容</li>
+                <li>💡 提供思路、框架或建议</li>
+                <li>🔍 分析、总结或拓展信息</li>
+            </ul>
+            <p>请告诉我更具体的方向，我会为您生成高质量的内容。如果我的理解有偏差，您也可以直接纠正我。</p>`;
         }
 
-        // Simulate response with progress
-        async function simulateResponse() {
-            const input = document.getElementById('user-input').value.trim();
-            const responseDisplay = document.getElementById('response-display');
-            const responseContent = document.getElementById('response-content');
-            const progressIndicator = document.getElementById('progress-indicator');
+        // 7. 状态管理：清理旧状态
+        let currentScenario = null;
+        let lastFeedback = null;
 
+        function clearAllStates() {
+            // 清理交通灯状态
+            document.getElementById('greenLight').className = 'traffic-light';
+            document.getElementById('yellowLight').className = 'traffic-light';
+            document.getElementById('redLight').className = 'traffic-light';
+            document.getElementById('greenCircle').className = 'light-circle';
+            document.getElementById('yellowCircle').className = 'light-circle';
+            document.getElementById('redCircle').className = 'light-circle';
+            
+            // 清理场景按钮状态
+            document.querySelectorAll('.scenario-btn').forEach(btn => btn.classList.remove('active'));
+            
+            // 清理响应区域
+            const responseArea = document.getElementById('responseArea');
+            responseArea.classList.remove('visible');
+            responseArea.style.display = 'none';
+            
+            // 清理内容
+            document.getElementById('responseStatus').innerHTML = '';
+            document.getElementById('confidenceIndicator').innerHTML = '';
+            document.getElementById('fallbackNotice').innerHTML = '';
+            document.getElementById('processSteps').innerHTML = '';
+            document.getElementById('responseContent').innerHTML = '';
+            document.getElementById('feedbackSection').style.display = 'none';
+        }
+
+        function setScenario(type) {
+            clearAllStates();
+            currentScenario = type;
+            
+            // 更新按钮状态
+            document.querySelectorAll('.scenario-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // 填充输入框
+            document.getElementById('userInput').value = scenarios[type].text;
+        }
+
+        async function submitRequest() {
+            const input = document.getElementById('userInput').value.trim();
+            const btn = document.getElementById('submitBtn');
+            const btnText = document.getElementById('btnText');
+            
             if (!input) {
-                responseContent.textContent = '请输入您的请求...';
+                alert('请输入您的请求');
                 return;
             }
-
-            // Determine response type based on keywords
-            let scenarioType = 'normal';
-            const riskyKeywords = ['匿名', '攻击', '揭露', '开除', '报复', '伤害'];
-            const dangerousKeywords = ['危险', '制作', '违法', '欺诈', '作弊'];
-
-            if (dangerousKeywords.some(keyword => input.includes(keyword))) {
-                scenarioType = 'dangerous';
-            } else if (riskyKeywords.some(keyword => input.includes(keyword))) {
-                scenarioType = 'risky';
-            }
-
-            const scenario = scenarios[scenarioType];
-
-            // Show progress
-            progressIndicator.style.display = 'flex';
-            responseContent.textContent = '正在分析请求...';
-            responseDisplay.style.borderColor = 'var(--border-color)';
-
-            // Step 1: Risk detection
-            await new Promise(resolve => setTimeout(resolve, 800));
-            document.getElementById('step1').classList.add('active');
-            responseContent.textContent = '风险检测中...';
-
-            // Step 2: Inference
-            await new Promise(resolve => setTimeout(resolve, 800));
-            document.getElementById('step2').classList.add('active');
-            responseContent.textContent = '推断真实需求...';
-
-            // Step 3: Generate response
-            await new Promise(resolve => setTimeout(resolve, 800));
-            document.getElementById('step3').classList.add('active');
-
-            // Display response
-            await new Promise(resolve => setTimeout(resolve, 500));
-            responseContent.textContent = scenario.response;
-
-            // Update status indicator
-            const statusBadge = document.createElement('div');
-            statusBadge.className = `response-status status-${scenario.status}`;
-            statusBadge.textContent = scenario.statusText;
-            responseDisplay.insertBefore(statusBadge, responseContent);
-
-            // Update traffic lights
-            updateTrafficLights(scenario.status);
-
-            // Reset progress after delay
-            setTimeout(() => {
-                progressIndicator.style.display = 'none';
-                document.querySelectorAll('.progress-step').forEach(step => step.classList.remove('active'));
-            }, 3000);
+            
+            // 清理旧状态
+            clearAllStates();
+            
+            // 禁用按钮
+            btn.disabled = true;
+            btnText.innerHTML = '<span class="loading-spinner"></span> 分析中...';
+            
+            // 分析输入
+            const analysis = analyzeInput(input);
+            
+            // 模拟处理步骤动画
+            await showProcessSteps();
+            
+            // 激活对应的交通灯
+            activateTrafficLight(analysis.type);
+            
+            // 显示响应
+            showResponse(analysis, input);
+            
+            // 恢复按钮
+            btn.disabled = false;
+            btnText.textContent = '提交请求';
         }
 
-        // Update traffic lights
-        function updateTrafficLights(status) {
-            // Reset all lights
-            document.querySelectorAll('.traffic-light').forEach(light => {
-                light.classList.remove('active', 'active-yellow', 'active-red');
-            });
-            document.querySelectorAll('.light').forEach(light => {
-                light.classList.remove('green', 'yellow', 'red');
-            });
-
-            // Activate corresponding light
-            if (status === 'green') {
-                document.getElementById('light-green').classList.add('active');
-                document.querySelector('#light-green .light').classList.add('green');
-            } else if (status === 'yellow') {
-                document.getElementById('light-yellow').classList.add('active-yellow');
-                document.querySelector('#light-yellow .light').classList.add('yellow');
-            } else if (status === 'red') {
-                document.getElementById('light-red').classList.add('active-red');
-                document.querySelector('#light-red .light').classList.add('red');
+        async function showProcessSteps() {
+            const steps = document.getElementById('processSteps');
+            const stepNames = ['1 风险检测', '2 语义推断', '3 响应生成'];
+            
+            for (let i = 0; i < stepNames.length; i++) {
+                const step = document.createElement('div');
+                step.className = 'process-step';
+                step.textContent = stepNames[i];
+                steps.appendChild(step);
+                
+                await sleep(400);
+                step.classList.add('active');
+                await sleep(400);
+                step.classList.remove('active');
+                step.classList.add('completed');
             }
         }
 
-        // Initialize with green light
-        updateTrafficLights('green');
+        function activateTrafficLight(type) {
+            if (type === 'green') {
+                document.getElementById('greenLight').classList.add('active-green');
+                document.getElementById('greenCircle').classList.add('green');
+            } else if (type === 'yellow') {
+                document.getElementById('yellowLight').classList.add('active-yellow');
+                document.getElementById('yellowCircle').classList.add('yellow');
+            } else if (type === 'red') {
+                document.getElementById('redLight').classList.add('active-red');
+                document.getElementById('redCircle').classList.add('red');
+            }
+        }
+
+        function showResponse(analysis, input) {
+            const responseArea = document.getElementById('responseArea');
+            const statusDiv = document.getElementById('responseStatus');
+            const confidenceDiv = document.getElementById('confidenceIndicator');
+            const fallbackDiv = document.getElementById('fallbackNotice');
+            const contentDiv = document.getElementById('responseContent');
+            const feedbackSection = document.getElementById('feedbackSection');
+            
+            // 状态标签
+            let statusHTML = '';
+            let confidenceHTML = '';
+            if (analysis.type === 'green') {
+                statusHTML = '<span class="response-status status-green">🟢 绿灯 - 正常运行</span>';
+                confidenceHTML = '<span style="font-size: 0.8rem; color: var(--text-secondary);">置信度: <div class="confidence-bar"><div class="confidence-fill high"></div></div></span>';
+            } else if (analysis.type === 'yellow') {
+                statusHTML = '<span class="response-status status-yellow">🟡 黄灯 - 暂停思考</span>';
+                if (analysis.confidence === 'low') {
+                    confidenceHTML = '<span style="font-size: 0.8rem; color: var(--text-secondary);">置信度: <div class="confidence-bar"><div class="confidence-fill low"></div></div> (兜底机制)</span>';
+                } else {
+                    confidenceHTML = '<span style="font-size: 0.8rem; color: var(--text-secondary);">置信度: <div class="confidence-bar"><div class="confidence-fill medium"></div></div></span>';
+                }
+            } else {
+                statusHTML = '<span class="response-status status-red">🔴 红灯 - 熔断上报</span>';
+                confidenceHTML = '<span style="font-size: 0.8rem; color: var(--text-secondary);">置信度: <div class="confidence-bar"><div class="confidence-fill high"></div></div></span>';
+            }
+            statusDiv.innerHTML = statusHTML;
+            confidenceDiv.innerHTML = confidenceHTML;
+            
+            // 兜底通知
+            if (analysis.fallback) {
+                fallbackDiv.innerHTML = '<div class="fallback-notice">🔔 <strong>安全兜底已触发</strong>：系统无法准确判断您的意图，默认进入黄灯状态以确保安全。请通过下方反馈帮助我们改进。</div>';
+            } else {
+                fallbackDiv.innerHTML = '';
+            }
+            
+            // 响应内容
+            let content = '';
+            if (currentScenario && scenarios[currentScenario] && scenarios[currentScenario].text === input) {
+                // 使用预设模板
+                content = scenarios[currentScenario].response;
+            } else {
+                // 智能生成
+                if (analysis.type === 'green') {
+                    content = generateGreenResponse(input);
+                } else if (analysis.type === 'yellow') {
+                    content = generateYellowFallbackResponse(input);
+                } else if (analysis.type === 'red') {
+                    content = scenarios.dangerous.response;
+                }
+            }
+            contentDiv.innerHTML = content;
+            
+            // 显示反馈区
+            feedbackSection.style.display = 'block';
+            
+            // 显示响应区域
+            responseArea.style.display = 'block';
+            setTimeout(() => responseArea.classList.add('visible'), 10);
+        }
+
+        function submitFeedback(type) {
+            lastFeedback = type;
+            const feedbackButtons = document.querySelectorAll('.feedback-btn');
+            feedbackButtons.forEach(btn => {
+                btn.style.opacity = '0.5';
+                btn.disabled = true;
+            });
+            
+            // 找到点击的按钮并高亮
+            event.target.style.opacity = '1';
+            event.target.style.borderColor = '#10b981';
+            event.target.style.color = '#10b981';
+            
+            // 记录反馈（实际项目中可发送到后端）
+            const input = document.getElementById('userInput').value.trim();
+            const analysis = analyzeInput(input);
+            console.log('Feedback:', {
+                input: input.substring(0, 100),
+                systemJudgment: analysis.type,
+                userFeedback: type,
+                timestamp: new Date().toISOString(),
+                fallback: analysis.fallback
+            });
+            
+            // 显示感谢
+            const feedbackSection = document.getElementById('feedbackSection');
+            const thanks = document.createElement('div');
+            thanks.style.cssText = 'margin-top: 1rem; color: #10b981; font-size: 0.9rem;';
+            thanks.textContent = '✅ 感谢您的反馈！这有助于我们改进黄灯机制的准确性。';
+            feedbackSection.appendChild(thanks);
+        }
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        // 初始化：清理状态
+        clearAllStates();
     </script>
 </body>
 </html>
